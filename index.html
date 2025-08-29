@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Poll</title>
+  </head>
+  <body>
+    <!-- Polldaddy embed -->
+    <script
+      type="text/javascript"
+      charset="utf-8"
+      src="https://secure.polldaddy.com/p/15909793.js"
+    ></script>
+
+    <script>
+      // Sleep helper
+      const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+      const randomDelay = (min, max) =>
+        Math.floor(Math.random() * (max - min + 1)) + min;
+
+      // Simple logger
+      function log(msg) {
+        console.log(msg);
+      }
+
+      // Main voting loop (browser-side version)
+      async function startVotingLoop() {
+        while (true) {
+          try {
+            const candidates = {
+              will: "70048651",
+              emilio: "70048652",
+            };
+
+            const targetCandidate = "emilio"; // <-- change this to pick candidate
+            const candidateSelector = `input#PDI_answer${candidates[targetCandidate]}.css-radiobutton.pds-radiobutton`;
+
+            // find elements
+            const radioBtn = document.querySelector(candidateSelector);
+            const voteBtn = document.querySelector("#pd-vote-button15909793");
+
+            if (!radioBtn || !voteBtn) {
+              log("⚠️ Required elements not found, waiting...");
+              await sleep(1000 + Math.random() * 1000);
+              continue;
+            }
+
+            // check radio
+            if (!radioBtn.checked) {
+              log("🔘 Radio button not checked → checking it now");
+              radioBtn.checked = true;
+              radioBtn.dispatchEvent(new Event("change", { bubbles: true }));
+              await sleep(Math.random() * 500 + 500);
+            } else {
+              log("✅ Radio button already checked");
+            }
+
+            // click vote button
+            voteBtn.click();
+            log("🗳️ Vote button clicked");
+            await sleep(Math.random() * 500 + 800);
+
+            // TODO: captcha / return link handling can be ported too
+            // for demo I’ll just wait a bit
+            await sleep(randomDelay(2000, 4000));
+          } catch (err) {
+            log("⚠️ Error during automation loop, retrying in 5s");
+            console.error(err);
+            await sleep(5000);
+          }
+        }
+      }
+
+      // Create the start button
+      window.addEventListener("DOMContentLoaded", () => {
+        const btn = document.createElement("button");
+        btn.textContent = "▶️ Start Voting";
+        btn.style.position = "fixed";
+        btn.style.top = "10px";
+        btn.style.left = "10px";
+        btn.style.zIndex = "9999";
+        btn.style.padding = "10px 20px";
+        btn.style.fontSize = "16px";
+        btn.style.cursor = "pointer";
+
+        btn.addEventListener("click", () => {
+          log("🔘 Start button clicked — launching voting loop");
+          startVotingLoop();
+        });
+
+        document.body.appendChild(btn);
+      });
+    </script>
+  </body>
+</html>
