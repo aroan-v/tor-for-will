@@ -3,43 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <title>Poll</title>
-    <style>
-      #startBtn {
-        position: fixed;
-        top: 10px;
-        left: 10px;
-        z-index: 9999;
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-      #counter {
-        position: fixed;
-        top: 10px;
-        left: 150px;
-        z-index: 9999;
-        font-size: 16px;
-        background: white;
-        padding: 8px 12px;
-        border: 1px solid #ccc;
-        border-radius: 6px;
-      }
-    </style>
   </head>
   <body>
-    <!-- Hardcoded start button -->
-    <button id="startBtn">▶️ Start Voting</button>
-    <!-- Vote counter -->
+    <!-- Counter display -->
     <div id="counter">Votes Sent: 0</div>
+    <!-- Manual Start Button -->
+    <button id="startBtn">Start Voting</button>
 
-    <!-- Poll embed -->
-    <div id="poll-container">
-      <script
-        type="text/javascript"
-        charset="utf-8"
-        src="https://secure.polldaddy.com/p/15909793.js"
-      ></script>
-    </div>
+    <!-- PollDaddy script embed -->
+    <script
+      type="text/javascript"
+      charset="utf-8"
+      src="https://secure.polldaddy.com/p/15909793.js"
+    ></script>
 
     <script>
       // Sleep helper
