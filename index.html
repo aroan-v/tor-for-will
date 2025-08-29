@@ -3,14 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <title>Poll</title>
+    <style>
+      #startBtn {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        z-index: 9999;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      #counter {
+        position: fixed;
+        top: 10px;
+        left: 150px;
+        z-index: 9999;
+        font-size: 16px;
+        background: white;
+        padding: 8px 12px;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+      }
+    </style>
   </head>
   <body>
-    <!-- Polldaddy embed -->
-    <script
-      type="text/javascript"
-      charset="utf-8"
-      src="https://secure.polldaddy.com/p/15909793.js"
-    ></script>
+    <!-- Hardcoded start button -->
+    <button id="startBtn">▶️ Start Voting</button>
+    <!-- Vote counter -->
+    <div id="counter">Votes Sent: 0</div>
+
+    <!-- Poll embed -->
+    <div id="poll-container">
+      <script
+        type="text/javascript"
+        charset="utf-8"
+        src="https://secure.polldaddy.com/p/15909793.js"
+      ></script>
+    </div>
 
     <script>
       // Sleep helper
@@ -18,12 +47,32 @@
       const randomDelay = (min, max) =>
         Math.floor(Math.random() * (max - min + 1)) + min;
 
-      // Simple logger
+      // Logger
       function log(msg) {
         console.log(msg);
       }
 
-      // Main voting loop (browser-side version)
+      // Counter
+      let voteCount = 0;
+      const counterEl = document.getElementById("counter");
+      function updateCounter() {
+        counterEl.textContent = "Votes Sent: " + voteCount;
+      }
+
+      // Reload poll script
+      async function reloadPoll() {
+        log("🔄 Reloading poll...");
+        const pollContainer = document.getElementById("poll-container");
+        pollContainer.innerHTML = ""; // clear old
+        const script = document.createElement("script");
+        script.src = "https://secure.polldaddy.com/p/15909793.js";
+        script.charset = "utf-8";
+        pollContainer.appendChild(script);
+        // give it a short time to re-render
+        await sleep(2000);
+      }
+
+      // Voting loop
       async function startVotingLoop() {
         while (true) {
           try {
@@ -39,13 +88,14 @@
             const radioBtn = document.querySelector(candidateSelector);
             const voteBtn = document.querySelector("#pd-vote-button15909793");
 
+            // If either element missing → reload poll instead of waiting
             if (!radioBtn || !voteBtn) {
-              log("⚠️ Required elements not found, waiting...");
-              await sleep(1000 + Math.random() * 1000);
+              log("⚠️ Required elements not found → reloading poll...");
+              await reloadPoll();
               continue;
             }
 
-            // check radio
+            // Check radio
             if (!radioBtn.checked) {
               log("🔘 Radio button not checked → checking it now");
               radioBtn.checked = true;
@@ -55,13 +105,14 @@
               log("✅ Radio button already checked");
             }
 
-            // click vote button
+            // Click vote button
             voteBtn.click();
-            log("🗳️ Vote button clicked");
+            voteCount++;
+            updateCounter();
+            log("🗳️ Vote button clicked, total votes: " + voteCount);
             await sleep(Math.random() * 500 + 800);
 
-            // TODO: captcha / return link handling can be ported too
-            // for demo I’ll just wait a bit
+            // For demo: wait a random time before next attempt
             await sleep(randomDelay(2000, 4000));
           } catch (err) {
             log("⚠️ Error during automation loop, retrying in 5s");
@@ -71,24 +122,10 @@
         }
       }
 
-      // Create the start button
-      window.addEventListener("DOMContentLoaded", () => {
-        const btn = document.createElement("button");
-        btn.textContent = "▶️ Start Voting";
-        btn.style.position = "fixed";
-        btn.style.top = "10px";
-        btn.style.left = "10px";
-        btn.style.zIndex = "9999";
-        btn.style.padding = "10px 20px";
-        btn.style.fontSize = "16px";
-        btn.style.cursor = "pointer";
-
-        btn.addEventListener("click", () => {
-          log("🔘 Start button clicked — launching voting loop");
-          startVotingLoop();
-        });
-
-        document.body.appendChild(btn);
+      // Hook button
+      document.getElementById("startBtn").addEventListener("click", () => {
+        log("🔘 Start button clicked — launching voting loop");
+        startVotingLoop();
       });
     </script>
   </body>
