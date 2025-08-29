@@ -59,17 +59,44 @@
         counterEl.textContent = "Votes Sent: " + voteCount;
       }
 
-      // Reload poll script
-      async function reloadPoll() {
-        log("🔄 Reloading poll...");
-        const pollContainer = document.getElementById("poll-container");
-        pollContainer.innerHTML = ""; // clear old
-        const script = document.createElement("script");
-        script.src = "https://secure.polldaddy.com/p/15909793.js";
-        script.charset = "utf-8";
-        pollContainer.appendChild(script);
-        // give it a short time to re-render
-        await sleep(2000);
+      // Handle return link reset
+      async function handleReturnLinkReset() {
+        try {
+          log("🔎 Looking for return link...");
+          const returnLink = document.querySelector("a.pds-return-poll");
+
+          if (returnLink) {
+            // small pause
+            await sleep(randomDelay(1500, 3000));
+            returnLink.click();
+            log("🔄 Clicked return link → back to poll");
+
+            // wait for main elements to come back
+            let retries = 0;
+            while (
+              !document.querySelector(
+                "input#PDI_answer70048651.css-radiobutton.pds-radiobutton, #pd-vote-button15909793",
+              ) &&
+              retries < 10
+            ) {
+              await sleep(1000);
+              retries++;
+            }
+
+            if (retries >= 10) {
+              log(
+                "⚠️ Main poll elements didn’t reappear, doing full page reload",
+              );
+              location.reload();
+            }
+          } else {
+            log("⚠️ Return link not found → reloading page");
+            location.reload();
+          }
+        } catch (err) {
+          console.error("⚠️ Error handling return link:", err);
+          location.reload();
+        }
       }
 
       // Voting loop
@@ -88,10 +115,12 @@
             const radioBtn = document.querySelector(candidateSelector);
             const voteBtn = document.querySelector("#pd-vote-button15909793");
 
-            // If either element missing → reload poll instead of waiting
+            // If missing → handle return link reset
             if (!radioBtn || !voteBtn) {
-              log("⚠️ Required elements not found → reloading poll...");
-              await reloadPoll();
+              log(
+                "⚠️ Required elements not found → attempting return link reset...",
+              );
+              await handleReturnLinkReset();
               continue;
             }
 
@@ -112,7 +141,7 @@
             log("🗳️ Vote button clicked, total votes: " + voteCount);
             await sleep(Math.random() * 500 + 800);
 
-            // For demo: wait a random time before next attempt
+            // idle delay before next iteration
             await sleep(randomDelay(2000, 4000));
           } catch (err) {
             log("⚠️ Error during automation loop, retrying in 5s");
